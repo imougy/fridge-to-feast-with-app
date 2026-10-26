@@ -75,6 +75,7 @@ private struct CaptureView: View {
                     Text("Spices").tag(PhotoKind.spices)
                     Text("Pantry").tag(PhotoKind.pantry)
                 }
+                .pickerStyle(.segmented)
                 if model.isExtracting {
                     HStack { ProgressView(); Text("Pulling the sharpest frames…") }
                         .foregroundStyle(.secondary)
