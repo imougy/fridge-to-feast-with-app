@@ -53,16 +53,21 @@ private struct CaptureView: View {
     @State private var showingVideoPicker = false
     @State private var showingPhotoPicker = false
     @State private var pendingKind: PhotoKind = .fridge
+    /// The kind locked in when an Add button is tapped. The picker loads
+    /// the video file in the background, and reading pendingKind only
+    /// when that finishes lets a quick switch retag the frames, so the
+    /// kind is captured up front instead.
+    @State private var uploadKind: PhotoKind = .fridge
     @State private var previewPhoto: CapturedPhoto?
     @State private var photoToDelete: CapturedPhoto?
 
     var body: some View {
         Form {
             Section("Your kitchen, captured") {
-                Button { showingVideoPicker = true } label: {
+                Button { uploadKind = pendingKind; showingVideoPicker = true } label: {
                     Label("Add a sweep video (5–10 seconds)", systemImage: "video")
                 }
-                Button { showingPhotoPicker = true } label: {
+                Button { uploadKind = pendingKind; showingPhotoPicker = true } label: {
                     Label("Add a still photo", systemImage: "photo.on.rectangle.angled")
                 }
                 Picker("These show my", selection: $pendingKind) {
@@ -134,7 +139,7 @@ private struct CaptureView: View {
             LibraryPicker(media: .video, isPresented: $showingVideoPicker) { assets in
                 for asset in assets {
                     if case .video(let url) = asset {
-                        model.addSweepVideo(kind: pendingKind, url: url)
+                        model.addSweepVideo(kind: uploadKind, url: url)
                     }
                 }
             }
@@ -143,7 +148,7 @@ private struct CaptureView: View {
             LibraryPicker(media: .photo, isPresented: $showingPhotoPicker) { assets in
                 for asset in assets {
                     if case .photo(let data) = asset {
-                        model.addPhoto(kind: pendingKind, data: data)
+                        model.addPhoto(kind: uploadKind, data: data)
                     }
                 }
             }
