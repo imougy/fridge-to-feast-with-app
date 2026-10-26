@@ -21,6 +21,10 @@ final class FridgeViewModel: ObservableObject {
     @Published var photos: [CapturedPhoto] = []
     @Published var items: [SegmentedItem] = []
     @Published var inventory: [Ingredient] = []
+    /// Items the user typed in themselves. Kept apart from the detected
+    /// inventory so a re-analysis never wipes them, and so they get
+    /// their own section instead of getting lost among detections.
+    @Published var userAdded: [Ingredient] = []
     @Published var recipes: [Recipe] = []
     @Published var menuPlan: MenuPlan?
     @Published var dishImages: [UUID: Data] = [:]
@@ -139,18 +143,25 @@ final class FridgeViewModel: ObservableObject {
         inventory.removeAll { $0.id == ingredient.id }
     }
 
+    func removeUserAdded(_ ingredient: Ingredient) {
+        userAdded.removeAll { $0.id == ingredient.id }
+    }
+
     func addIngredient(name: String, category: Ingredient.Category) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        inventory.append(Ingredient(name: trimmed.lowercased(), category: category, source: .userAdded))
+        userAdded.append(Ingredient(name: trimmed.lowercased(), category: category, source: .userAdded))
     }
+
+    /// Detected plus user-added: this is what recipes are built from.
+    var confirmedInventory: [Ingredient] { inventory + userAdded }
 
     /// Stage 3, solo: recipes from the confirmed inventory only.
     func makeRecipes() {
         Task {
             stage = .working("Inventing tonight's options…")
             do {
-                recipes = try await pipeline.recipes(inventory: inventory, preferences: preferences)
+                recipes = try await pipeline.recipes(inventory: confirmedInventory, preferences: preferences)
                 stage = .recipes
                 loadDishImages(for: recipes)
             } catch {
@@ -167,7 +178,7 @@ final class FridgeViewModel: ObservableObject {
             stage = .working("Composing your menu…")
             do {
                 let party = PartyPlan(guests: guests, budgetUSD: budgetUSD, serveAt: serveAt)
-                let plan = try await pipeline.menu(inventory: inventory, party: party, preferences: preferences)
+                let plan = try await pipeline.menu(inventory: confirmedInventory, party: party, preferences: preferences)
                 menuPlan = plan
                 stage = .menu
                 loadDishImages(for: plan.recipes)
@@ -201,6 +212,7 @@ final class FridgeViewModel: ObservableObject {
         photos = []
         items = []
         inventory = []
+        userAdded = []
         recipes = []
         menuPlan = nil
         dishImages = [:]

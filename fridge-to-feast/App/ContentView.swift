@@ -227,23 +227,45 @@ private struct ConfirmView: View {
                 }
             }
             Section("Add something it missed") {
-                HStack {
+                VStack(alignment: .leading, spacing: 8) {
                     TextField("e.g. butter", text: $newItemName)
-                    Toggle("Spice", isOn: $newItemIsSpice).labelsHidden()
-                    Button("Add") {
-                        model.addIngredient(name: newItemName,
-                                            category: newItemIsSpice ? .spice : .ingredient)
-                        newItemName = ""
+                    HStack {
+                        Picker("Kind", selection: $newItemIsSpice) {
+                            Text("Ingredient").tag(false)
+                            Text("Spice").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                        Button("Add") {
+                            model.addIngredient(name: newItemName,
+                                                category: newItemIsSpice ? .spice : .ingredient)
+                            newItemName = ""
+                        }
+                        .disabled(newItemName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+            }
+            if !model.userAdded.isEmpty {
+                Section("You added") {
+                    ForEach(model.userAdded) { ingredient in
+                        HStack {
+                            Text(ingredient.name)
+                            Text(ingredient.category == .spice ? "spice" : "ingredient")
+                                .font(.caption).foregroundStyle(.secondary)
+                            Spacer()
+                            Button(role: .destructive) { model.removeUserAdded(ingredient) } label: {
+                                Image(systemName: "trash")
+                            }
+                        }
                     }
                 }
             }
             Section {
                 if model.hosting {
                     Button("Plan the menu for \(model.guests)") { model.makeMenu() }
-                        .disabled(model.inventory.isEmpty)
+                        .disabled(model.confirmedInventory.isEmpty)
                 } else {
                     Button("Make my recipes") { model.makeRecipes() }
-                        .disabled(model.inventory.isEmpty)
+                        .disabled(model.confirmedInventory.isEmpty)
                 }
             }
         }
@@ -526,7 +548,7 @@ struct LibraryPicker: UIViewControllerRepresentable {
                         let copy = FileManager.default.temporaryDirectory
                             .appendingPathComponent(UUID().uuidString)
                             .appendingPathExtension(url.pathExtension)
-                        if (try? FileManager.default.copyItem(at: url, to: copy)) == true {
+                        if (try? FileManager.default.copyItem(at: url, to: copy)) != nil {
                             lock.lock()
                             assets.append(.video(copy))
                             lock.unlock()
