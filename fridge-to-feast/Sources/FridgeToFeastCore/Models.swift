@@ -17,13 +17,16 @@ public struct CapturedPhoto: Identifiable, Sendable {
     public var imageData: Data
     /// Seconds into the source video when this photo is a video frame.
     public var videoTimestamp: Double?
+    /// Groups the frames of one sweep video together; nil for still photos.
+    public var sourceID: UUID?
 
     public init(id: UUID = UUID(), kind: PhotoKind, imageData: Data,
-                videoTimestamp: Double? = nil) {
+                videoTimestamp: Double? = nil, sourceID: UUID? = nil) {
         self.id = id
         self.kind = kind
         self.imageData = imageData
         self.videoTimestamp = videoTimestamp
+        self.sourceID = sourceID
     }
 }
 

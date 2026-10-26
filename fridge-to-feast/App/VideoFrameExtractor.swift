@@ -61,7 +61,7 @@ enum VideoFrameExtractor {
                 imageData: jpeg))
         }
         let frames = KeyframeSelector.select(from: candidates)
-        return KeyframeSelector.photos(from: frames, kind: kind)
+        return KeyframeSelector.photos(from: frames, kind: kind, sourceID: UUID())
     }
 
     /// A cheap blur meter: downscale to a small grayscale buffer and

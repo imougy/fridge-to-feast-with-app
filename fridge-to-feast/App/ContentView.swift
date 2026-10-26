@@ -59,7 +59,7 @@ private struct CaptureView: View {
     /// kind is captured up front instead.
     @State private var uploadKind: PhotoKind = .fridge
     @State private var previewPhoto: CapturedPhoto?
-    @State private var photoToDelete: CapturedPhoto?
+    @State private var groupToDelete: CaptureGroup?
 
     var body: some View {
         Form {
@@ -79,33 +79,29 @@ private struct CaptureView: View {
                     HStack { ProgressView(); Text("Pulling the sharpest frames…") }
                         .foregroundStyle(.secondary)
                 }
-                let shown = model.photos.filter { $0.kind == pendingKind }
-                if shown.isEmpty {
+                let grouped = groups(for: model.photos.filter { $0.kind == pendingKind })
+                if grouped.isEmpty {
                     Text("No \(pendingKind.rawValue) shots yet. Add a sweep video or a photo above.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                ForEach(shown) { photo in
+                ForEach(grouped) { group in
                     HStack {
-                        Button { previewPhoto = photo } label: {
+                        Button { previewPhoto = group.photos.first } label: {
                             HStack {
-                                if let image = UIImage(data: photo.imageData) {
+                                if let first = group.photos.first,
+                                   let image = UIImage(data: first.imageData) {
                                     Image(uiImage: image)
                                         .resizable().scaledToFill()
                                         .frame(width: 44, height: 44).clipped().cornerRadius(8)
                                 }
-                                Label(photo.kind.rawValue.capitalized, systemImage: icon(for: photo.kind))
-                                if let ts = photo.videoTimestamp {
-                                    Text("frame at \(String(format: "%.1f", ts))s")
-                                        .font(.caption).foregroundStyle(.secondary)
-                                } else {
-                                    Text("photo")
-                                        .font(.caption).foregroundStyle(.secondary)
-                                }
+                                Label(group.kind.rawValue.capitalized, systemImage: icon(for: group.kind))
+                                Text(group.isVideo ? "video · \(group.photos.count) frames" : "photo")
+                                    .font(.caption).foregroundStyle(.secondary)
                             }
                         }
                         .buttonStyle(.plain)
                         Spacer()
-                        Button(role: .destructive) { photoToDelete = photo } label: {
+                        Button(role: .destructive) { groupToDelete = group } label: {
                             Image(systemName: "trash")
                         }
                     }
@@ -168,12 +164,13 @@ private struct CaptureView: View {
                 .toolbar { Button("Done") { previewPhoto = nil } }
             }
         }
-        .confirmationDialog("Delete this frame?", isPresented: .constant(photoToDelete != nil)) {
+        .confirmationDialog(groupToDelete?.isVideo == true ? "Delete this video?" : "Delete this photo?",
+                            isPresented: .constant(groupToDelete != nil)) {
             Button("Delete", role: .destructive) {
-                if let photo = photoToDelete { model.removePhoto(photo) }
-                photoToDelete = nil
+                if let group = groupToDelete { model.removePhotos(group.photos) }
+                groupToDelete = nil
             }
-            Button("Cancel", role: .cancel) { photoToDelete = nil }
+            Button("Cancel", role: .cancel) { groupToDelete = nil }
         }
     }
 
@@ -184,6 +181,36 @@ private struct CaptureView: View {
         case .pantry: return "cabinet"
         }
     }
+}
+
+/// One row of the capture list: a single still photo, or all the frames
+/// of one sweep video collapsed into one row. The frames still exist
+/// underneath for segmentation; they just stop cluttering the list.
+private struct CaptureGroup: Identifiable {
+    var id: String
+    var kind: PhotoKind
+    var photos: [CapturedPhoto]
+    var isVideo: Bool
+}
+
+private func groups(for photos: [CapturedPhoto]) -> [CaptureGroup] {
+    var ordered: [CaptureGroup] = []
+    var videoGroups: [UUID: Int] = [:]
+    for photo in photos {
+        if let sourceID = photo.sourceID {
+            if let index = videoGroups[sourceID] {
+                ordered[index].photos.append(photo)
+            } else {
+                videoGroups[sourceID] = ordered.count
+                ordered.append(CaptureGroup(id: sourceID.uuidString, kind: photo.kind,
+                                            photos: [photo], isVideo: true))
+            }
+        } else {
+            ordered.append(CaptureGroup(id: photo.id.uuidString, kind: photo.kind,
+                                        photos: [photo], isVideo: false))
+        }
+    }
+    return ordered
 }
 
 // MARK: - Confirm inventory

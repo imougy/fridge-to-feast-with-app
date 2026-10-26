@@ -74,7 +74,7 @@ public enum KeyframeSelector {
     /// Converts selected frames into pipeline photos of the given kind.
     /// Downstream, a video frame is indistinguishable from a still photo —
     /// that is the design: video changes capture, not the pipeline.
-    public static func photos(from frames: [FrameCandidate], kind: PhotoKind) -> [CapturedPhoto] {
-        frames.map { CapturedPhoto(kind: kind, imageData: $0.imageData, videoTimestamp: $0.timestamp) }
+    public static func photos(from frames: [FrameCandidate], kind: PhotoKind, sourceID: UUID? = nil) -> [CapturedPhoto] {
+        frames.map { CapturedPhoto(kind: kind, imageData: $0.imageData, videoTimestamp: $0.timestamp, sourceID: sourceID) }
     }
 }

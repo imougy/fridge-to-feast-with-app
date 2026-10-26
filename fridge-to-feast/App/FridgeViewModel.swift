@@ -108,6 +108,12 @@ final class FridgeViewModel: ObservableObject {
         photos.removeAll { $0.id == photo.id }
     }
 
+    /// Remove a whole capture: one still photo, or every frame of one video.
+    func removePhotos(_ photosToRemove: [CapturedPhoto]) {
+        let ids = Set(photosToRemove.map(\.id))
+        photos.removeAll { ids.contains($0.id) }
+    }
+
     /// Turns a sweep video into stills (sharpest frames only, on device)
     /// and adds them as photos of the given kind.
     func addSweepVideo(kind: PhotoKind, url: URL) {
