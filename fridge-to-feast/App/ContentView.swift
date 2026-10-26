@@ -64,23 +64,24 @@ private struct CaptureView: View {
     var body: some View {
         Form {
             Section("Your kitchen, captured") {
-                Button { uploadKind = pendingKind; showingVideoPicker = true } label: {
-                    Label("Add a sweep video (5–10 seconds)", systemImage: "video")
-                }
-                Button { uploadKind = pendingKind; showingPhotoPicker = true } label: {
-                    Label("Add a still photo", systemImage: "photo.on.rectangle.angled")
-                }
                 Picker("These show my", selection: $pendingKind) {
                     Text("Fridge").tag(PhotoKind.fridge)
                     Text("Spices").tag(PhotoKind.spices)
                     Text("Pantry").tag(PhotoKind.pantry)
                 }
                 .pickerStyle(.segmented)
-                if model.isExtracting {
+                let grouped = groups(for: model.photos.filter { $0.kind == pendingKind })
+                if model.isExtracting && uploadKind == pendingKind {
                     HStack { ProgressView(); Text("Pulling the sharpest frames…") }
                         .foregroundStyle(.secondary)
+                } else if grouped.isEmpty {
+                    Button { uploadKind = pendingKind; showingVideoPicker = true } label: {
+                        Label("Add a sweep video (5–10 seconds)", systemImage: "video")
+                    }
+                    Button { uploadKind = pendingKind; showingPhotoPicker = true } label: {
+                        Label("Add a still photo", systemImage: "photo.on.rectangle.angled")
+                    }
                 }
-                let grouped = groups(for: model.photos.filter { $0.kind == pendingKind })
                 if grouped.isEmpty {
                     Text("No \(pendingKind.rawValue) shots yet. Add a sweep video or a photo above.")
                         .font(.caption).foregroundStyle(.secondary)
