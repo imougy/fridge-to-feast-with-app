@@ -1,0 +1,282 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000020 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000010 /* ContentView.swift */; };
+		100000000000000000000021 /* FridgeToFeastApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000011 /* FridgeToFeastApp.swift */; };
+		100000000000000000000022 /* FridgeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000012 /* FridgeViewModel.swift */; };
+		100000000000000000000023 /* SegmentationOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000013 /* SegmentationOverlayView.swift */; };
+		100000000000000000000024 /* VideoFrameExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000014 /* VideoFrameExtractor.swift */; };
+		EB82A21D308FF87D000134DF /* FridgeToFeastCore in Frameworks */ = {isa = PBXBuildFile; productRef = EB82A21C308FF87D000134DF /* FridgeToFeastCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		100000000000000000000006 /* FridgeToFeastApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FridgeToFeastApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000010 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		100000000000000000000011 /* FridgeToFeastApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeToFeastApp.swift; sourceTree = "<group>"; };
+		100000000000000000000012 /* FridgeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FridgeViewModel.swift; sourceTree = "<group>"; };
+		100000000000000000000013 /* SegmentationOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentationOverlayView.swift; sourceTree = "<group>"; };
+		100000000000000000000014 /* VideoFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFrameExtractor.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		100000000000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EB82A21D308FF87D000134DF /* FridgeToFeastCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		100000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000003 /* ../fridge-to-feast/App */,
+				100000000000000000000004 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		100000000000000000000003 /* ../fridge-to-feast/App */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000010 /* ContentView.swift */,
+				100000000000000000000011 /* FridgeToFeastApp.swift */,
+				100000000000000000000012 /* FridgeViewModel.swift */,
+				100000000000000000000013 /* SegmentationOverlayView.swift */,
+				100000000000000000000014 /* VideoFrameExtractor.swift */,
+			);
+			path = "../fridge-to-feast/App";
+			sourceTree = "<group>";
+		};
+		100000000000000000000004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000006 /* FridgeToFeastApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		100000000000000000000005 /* FridgeToFeastApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000043 /* Build configuration list for PBXNativeTarget "FridgeToFeastApp" */;
+			buildPhases = (
+				100000000000000000000007 /* Sources */,
+				100000000000000000000008 /* Frameworks */,
+				100000000000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FridgeToFeastApp;
+			packageProductDependencies = (
+				EB82A21C308FF87D000134DF /* FridgeToFeastCore */,
+			);
+			productName = FridgeToFeastApp;
+			productReference = 100000000000000000000006 /* FridgeToFeastApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		100000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					100000000000000000000005 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = 100000000000000000000040 /* Build configuration list for PBXProject "FridgeToFeastApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 100000000000000000000002;
+			packageReferences = (
+				EB82A21B308FF87D000134DF /* XCLocalSwiftPackageReference "../fridge-to-feast" */,
+			);
+			productRefGroup = 100000000000000000000004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				100000000000000000000005 /* FridgeToFeastApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		100000000000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		100000000000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000020 /* ContentView.swift in Sources */,
+				100000000000000000000021 /* FridgeToFeastApp.swift in Sources */,
+				100000000000000000000022 /* FridgeViewModel.swift in Sources */,
+				100000000000000000000023 /* SegmentationOverlayView.swift in Sources */,
+				100000000000000000000024 /* VideoFrameExtractor.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		100000000000000000000041 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LOCALIZATION_PREFS = "";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		100000000000000000000042 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LOCALIZATION_PREFS = "";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		100000000000000000000044 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZS6X8QQ47L;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FridgeToFeast;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cinnamonmobile.fridgetofeast;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		100000000000000000000045 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = ZS6X8QQ47L;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = FridgeToFeast;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cinnamonmobile.fridgetofeast;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMBED_LIBRARIES_WITH_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		100000000000000000000040 /* Build configuration list for PBXProject "FridgeToFeastApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000041 /* Debug */,
+				100000000000000000000042 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000043 /* Build configuration list for PBXNativeTarget "FridgeToFeastApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000044 /* Debug */,
+				100000000000000000000045 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		EB82A21B308FF87D000134DF /* XCLocalSwiftPackageReference "../fridge-to-feast" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../fridge-to-feast";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EB82A21C308FF87D000134DF /* FridgeToFeastCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FridgeToFeastCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 100000000000000000000001 /* Project object */;
+}
