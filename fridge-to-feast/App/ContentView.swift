@@ -71,10 +71,8 @@ private struct CaptureView: View {
                 }
                 .pickerStyle(.segmented)
                 let grouped = groups(for: model.photos.filter { $0.kind == pendingKind })
-                if model.isExtracting && uploadKind == pendingKind {
-                    HStack { ProgressView(); Text("Pulling the sharpest frames…") }
-                        .foregroundStyle(.secondary)
-                } else if grouped.isEmpty {
+                let pending = model.pendingUploads.filter { $0.kind == pendingKind }
+                if pending.isEmpty && grouped.isEmpty {
                     Button { uploadKind = pendingKind; showingVideoPicker = true } label: {
                         Label("Add a sweep video (5–10 seconds)", systemImage: "video")
                     }
@@ -82,7 +80,16 @@ private struct CaptureView: View {
                         Label("Add a still photo", systemImage: "photo.on.rectangle.angled")
                     }
                 }
-                if grouped.isEmpty {
+                ForEach(pending) { upload in
+                    HStack {
+                        ProgressView()
+                        Text(upload.name).lineLimit(1)
+                        Text(upload.isVideo ? "video · processing…" : "photo · processing…")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                }
+                if pending.isEmpty && grouped.isEmpty {
                     Text("No \(pendingKind.rawValue) shots yet. Add a sweep video or a photo above.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
@@ -134,22 +141,28 @@ private struct CaptureView: View {
             }
         }
         .sheet(isPresented: $showingVideoPicker) {
-            LibraryPicker(media: .video, isPresented: $showingVideoPicker) { assets in
+            LibraryPicker(media: .video, isPresented: $showingVideoPicker,
+                          onSelect: { picks in model.addPendingUploads(picks, kind: uploadKind, isVideo: true) },
+                          onPick: { assets, failed in
+                model.resolveFailedUploads(failed)
                 for asset in assets {
-                    if case .video(let url) = asset {
-                        model.addSweepVideo(kind: uploadKind, url: url)
+                    if case .video(let id, let url, _) = asset {
+                        model.addSweepVideo(url: url, pendingID: id, fallbackKind: uploadKind)
                     }
                 }
-            }
+            })
         }
         .sheet(isPresented: $showingPhotoPicker) {
-            LibraryPicker(media: .photo, isPresented: $showingPhotoPicker) { assets in
+            LibraryPicker(media: .photo, isPresented: $showingPhotoPicker,
+                          onSelect: { picks in model.addPendingUploads(picks, kind: uploadKind, isVideo: false) },
+                          onPick: { assets, failed in
+                model.resolveFailedUploads(failed)
                 for asset in assets {
-                    if case .photo(let data) = asset {
-                        model.addPhoto(kind: uploadKind, data: data)
+                    if case .photo(let id, let data) = asset {
+                        model.addPhoto(data: data, pendingID: id, fallbackKind: uploadKind)
                     }
                 }
-            }
+            })
         }
         .fullScreenCover(item: $previewPhoto) { photo in
             NavigationStack {
@@ -525,22 +538,43 @@ import UniformTypeIdentifiers
 /// so a picked video stays checkmarked on the next open. This wrapper owns
 /// no selection state: each presentation is a fresh picker, tapping an item
 /// only toggles its checkmark, and Add hands back everything selected.
+///
+/// Picking is instant by design: onSelect fires the moment the picker
+/// closes, with just the items' names, so the UI can show a row right away.
+/// The files themselves load in the background and arrive via onPick, which
+/// also reports the IDs that failed to load so no row gets stuck.
 struct LibraryPicker: UIViewControllerRepresentable {
     enum Media {
         case video
         case photo
     }
 
+    struct PendingPick: Identifiable {
+        let id: UUID
+        let name: String
+        /// The picked asset's identifier, falling back to its filename, so
+        /// the same pick can be recognized if it is chosen again.
+        let dedupeKey: String
+    }
+
     enum LibraryAsset {
         /// A private temp copy the caller owns (the picker's URL is only
         /// valid inside its completion handler, so it is copied first).
-        case video(URL)
-        case photo(Data)
+        case video(id: UUID, url: URL, name: String)
+        case photo(id: UUID, data: Data)
+
+        var id: UUID {
+            switch self {
+            case .video(let id, _, _): return id
+            case .photo(let id, _): return id
+            }
+        }
     }
 
     let media: Media
     let isPresented: Binding<Bool>
-    let onPick: ([LibraryAsset]) -> Void
+    let onSelect: ([PendingPick]) -> Void
+    let onPick: ([LibraryAsset], [UUID]) -> Void
 
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
@@ -554,27 +588,39 @@ struct LibraryPicker: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(isPresented: isPresented, onPick: onPick)
+        Coordinator(media: media, isPresented: isPresented, onSelect: onSelect, onPick: onPick)
     }
 
     final class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let media: Media
         let isPresented: Binding<Bool>
-        let onPick: ([LibraryAsset]) -> Void
+        let onSelect: ([PendingPick]) -> Void
+        let onPick: ([LibraryAsset], [UUID]) -> Void
 
-        init(isPresented: Binding<Bool>, onPick: @escaping ([LibraryAsset]) -> Void) {
+        init(media: Media, isPresented: Binding<Bool>,
+             onSelect: @escaping ([PendingPick]) -> Void,
+             onPick: @escaping ([LibraryAsset], [UUID]) -> Void) {
+            self.media = media
             self.isPresented = isPresented
+            self.onSelect = onSelect
             self.onPick = onPick
         }
 
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             isPresented.wrappedValue = false
             guard !results.isEmpty else { return }
+            let pending = results.map { result in
+                let name = result.itemProvider.suggestedName ?? (media == .video ? "Video" : "Photo")
+                return PendingPick(id: UUID(), name: name,
+                                   dedupeKey: result.assetIdentifier ?? name)
+            }
+            onSelect(pending)
             let group = DispatchGroup()
             var assets: [LibraryAsset] = []
             let lock = NSLock()
-            for result in results {
+            for (result, pick) in zip(results, pending) {
                 let provider = result.itemProvider
-                if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+                if media == .video {
                     group.enter()
                     provider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, _ in
                         defer { group.leave() }
@@ -584,22 +630,26 @@ struct LibraryPicker: UIViewControllerRepresentable {
                             .appendingPathExtension(url.pathExtension)
                         if (try? FileManager.default.copyItem(at: url, to: copy)) != nil {
                             lock.lock()
-                            assets.append(.video(copy))
+                            assets.append(.video(id: pick.id, url: copy, name: pick.name))
                             lock.unlock()
                         }
                     }
-                } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                } else {
                     group.enter()
                     provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
                         defer { group.leave() }
                         guard let data else { return }
                         lock.lock()
-                        assets.append(.photo(data))
+                        assets.append(.photo(id: pick.id, data: data))
                         lock.unlock()
                     }
                 }
             }
-            group.notify(queue: .main) { self.onPick(assets) }
+            group.notify(queue: .main) {
+                let succeeded = Set(assets.map(\.id))
+                let failed = pending.filter { !succeeded.contains($0.id) }.map(\.id)
+                self.onPick(assets, failed)
+            }
         }
     }
 }

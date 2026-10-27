@@ -19,14 +19,18 @@ public struct CapturedPhoto: Identifiable, Sendable {
     public var videoTimestamp: Double?
     /// Groups the frames of one sweep video together; nil for still photos.
     public var sourceID: UUID?
+    /// Identifies the picked asset this capture came from, so picking the
+    /// same video twice can never create two rows. Nil for legacy captures.
+    public var sourceKey: String?
 
     public init(id: UUID = UUID(), kind: PhotoKind, imageData: Data,
-                videoTimestamp: Double? = nil, sourceID: UUID? = nil) {
+                videoTimestamp: Double? = nil, sourceID: UUID? = nil, sourceKey: String? = nil) {
         self.id = id
         self.kind = kind
         self.imageData = imageData
         self.videoTimestamp = videoTimestamp
         self.sourceID = sourceID
+        self.sourceKey = sourceKey
     }
 }
 

@@ -6,6 +6,16 @@ import FridgeToFeastCore
 /// the permanent demo safety net (see the project brief).
 private let useLiveAPI = false
 
+/// A picked video or photo whose row shows immediately, before its file
+/// has loaded or its frames have been extracted.
+struct PendingUpload: Identifiable {
+    let id: UUID
+    let kind: PhotoKind
+    let name: String
+    let isVideo: Bool
+    let dedupeKey: String
+}
+
 @MainActor
 final class FridgeViewModel: ObservableObject {
     enum Stage {
@@ -21,6 +31,9 @@ final class FridgeViewModel: ObservableObject {
     @Published var photos: [CapturedPhoto] = []
     @Published var items: [SegmentedItem] = []
     @Published var inventory: [Ingredient] = []
+    /// Videos and photos picked but still loading or extracting. Shown
+    /// instantly by name so a pick never looks like it did nothing.
+    @Published var pendingUploads: [PendingUpload] = []
     /// Items the user typed in themselves. Kept apart from the detected
     /// inventory so a re-analysis never wipes them, and so they get
     /// their own section instead of getting lost among detections.
@@ -100,8 +113,31 @@ final class FridgeViewModel: ObservableObject {
 
     // MARK: Flow
 
-    func addPhoto(kind: PhotoKind, data: Data) {
-        photos.append(CapturedPhoto(kind: kind, imageData: data))
+    func addPhoto(data: Data, pendingID: UUID, fallbackKind: PhotoKind) {
+        let pending = pendingUploads.first(where: { $0.id == pendingID })
+        let kind = pending?.kind ?? fallbackKind
+        pendingUploads.removeAll { $0.id == pendingID }
+        photos.append(CapturedPhoto(kind: kind, imageData: data, sourceKey: pending?.dedupeKey))
+    }
+
+    /// Record picks the moment the picker closes, so their rows appear
+    /// instantly while the files load in the background. A pick whose
+    /// asset is already pending or captured for this kind is ignored, so
+    /// the same video can never create two rows.
+    func addPendingUploads(_ picks: [LibraryPicker.PendingPick], kind: PhotoKind, isVideo: Bool) {
+        let existingKeys = Set(pendingUploads.filter { $0.kind == kind }.map(\.dedupeKey))
+            .union(photos.filter { $0.kind == kind }.compactMap(\.sourceKey))
+        let fresh = picks.filter { !existingKeys.contains($0.dedupeKey) }
+        pendingUploads.append(contentsOf: fresh.map {
+            PendingUpload(id: $0.id, kind: kind, name: $0.name, isVideo: isVideo, dedupeKey: $0.dedupeKey)
+        })
+    }
+
+    /// Drop picks whose files failed to load, so no row gets stuck.
+    func resolveFailedUploads(_ ids: [UUID]) {
+        guard !ids.isEmpty else { return }
+        pendingUploads.removeAll { ids.contains($0.id) }
+        errorMessage = "Couldn't load that item. Try picking it again."
     }
 
     func removePhoto(_ photo: CapturedPhoto) {
@@ -115,12 +151,18 @@ final class FridgeViewModel: ObservableObject {
     }
 
     /// Turns a sweep video into stills (sharpest frames only, on device)
-    /// and adds them as photos of the given kind.
-    func addSweepVideo(kind: PhotoKind, url: URL) {
+    /// and adds them as photos of the given kind. The kind comes from the
+    /// pending row created when the video was picked, so a switch made
+    /// while the file was loading can never retag it.
+    func addSweepVideo(url: URL, pendingID: UUID, fallbackKind: PhotoKind) {
+        let pending = pendingUploads.first(where: { $0.id == pendingID })
+        let kind = pending?.kind ?? fallbackKind
+        pendingUploads.removeAll { $0.id == pendingID }
         isExtracting = true
         Task {
             let frames = await VideoFrameExtractor.extract(from: url, kind: kind)
-            photos.append(contentsOf: frames)
+            let stamped = frames.map { var f = $0; f.sourceKey = pending?.dedupeKey; return f }
+            photos.append(contentsOf: stamped)
             isExtracting = false
             if frames.isEmpty {
                 errorMessage = "No usable frames in that video. Try a slower sweep, or add still photos."
@@ -218,6 +260,7 @@ final class FridgeViewModel: ObservableObject {
         photos = []
         items = []
         inventory = []
+        pendingUploads = []
         userAdded = []
         recipes = []
         menuPlan = nil
